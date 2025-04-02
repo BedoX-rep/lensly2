@@ -20,7 +20,7 @@ export async function getProducts() {
 export async function addProduct(name: string, price: number) {
   const { data, error } = await supabase
     .from('products')
-    .insert([{ name, price }])
+    .insert([{ name, price, user_id: supabase.auth.getUser().then(res => res.data.user?.id) }])
     .select()
     .single();
 
@@ -103,7 +103,7 @@ export async function getClientById(id: string) {
 export async function addClient(name: string, phone: string) {
   const { data, error } = await supabase
     .from('clients')
-    .insert([{ name, phone }])
+    .insert([{ name, phone, user_id: supabase.auth.getUser().then(res => res.data.user?.id) }])
     .select()
     .single();
 
@@ -224,8 +224,11 @@ export async function getClientReceipts(clientId: string) {
 }
 
 export async function createReceipt(receipt: any, items: any[]) {
-  // Make sure we're using the current timestamp
+  // Make sure we're using the current timestamp and include user_id
   receipt.created_at = new Date().toISOString();
+  const { data: { user } } = await supabase.auth.getUser();
+  receipt.user_id = user?.id;
+  items = items.map(item => ({ ...item, user_id: user?.id }));
 
   // Start a transaction
   const { data: receiptData, error: receiptError } = await supabase
