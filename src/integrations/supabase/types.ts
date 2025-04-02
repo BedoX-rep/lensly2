@@ -15,6 +15,7 @@ export type Database = {
           id: string
           name: string
           phone: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -37,6 +38,7 @@ export type Database = {
           name: string
           position: number
           price: number
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -58,6 +60,7 @@ export type Database = {
         Row: {
           created_at: string
           custom_item_name: string | null
+          user_id: string
           id: string
           price: number
           product_id: string | null
@@ -103,6 +106,7 @@ export type Database = {
         Row: {
           add_value: number | null
           advance_payment: number | null
+          user_id: string
           balance: number
           client_id: string
           created_at: string
