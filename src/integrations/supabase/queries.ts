@@ -235,12 +235,27 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
+    // Validate client exists
+    const { data: clientExists } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', receipt.client_id)
+      .single();
+
+    if (!clientExists) {
+      console.error('Client not found');
+      toast.error('Invalid client selected');
+      return null;
+    }
+
     // First create the receipt
     const newReceipt = {
       ...receipt,
       user_id: user.id,
       created_at: new Date().toISOString()
     };
+
+    console.log('Creating receipt:', newReceipt);
 
     const { data: receiptData, error: receiptError } = await supabase
       .from('receipts')

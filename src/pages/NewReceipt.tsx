@@ -149,12 +149,20 @@ const [selectedClient, setSelectedClient] = useState<string>('');
       created_at: new Date().toISOString(),
     };
 
-    const itemsData = items.map(item => ({
-      product_id: item.productId,
-      quantity: item.quantity,
-      price: item.price,
-    }));
+    // Map items with correct structure
+    const itemsData = items.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      return {
+        product_id: item.productId,
+        quantity: item.quantity,
+        price: product ? product.price : item.price, // Use product price if product exists
+        custom_item_name: !item.productId ? item.name : null
+      };
+    });
 
+    console.log('Receipt data:', receipt);
+    console.log('Items data:', itemsData);
+    
     const result = await createReceipt(receipt, itemsData);
     
     if (result) {
