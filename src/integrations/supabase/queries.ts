@@ -1,3 +1,4 @@
+
 import { supabase } from "./client";
 import { toast } from "sonner";
 
@@ -239,36 +240,41 @@ export async function createReceipt(receipt: any, items: any[]) {
 
     // Start the transaction
     const { data: receiptData, error: receiptError } = await supabase
-    .from('receipts')
-    .insert([receipt])
-    .select()
-    .single();
+      .from('receipts')
+      .insert([receipt])
+      .select()
+      .single();
 
-  if (receiptError) {
-    console.error('Error creating receipt:', receiptError);
+    if (receiptError) {
+      console.error('Error creating receipt:', receiptError);
+      toast.error('Failed to create receipt');
+      return null;
+    }
+
+    // Add receipt ID to items
+    const itemsWithReceiptId = items.map(item => ({
+      ...item,
+      receipt_id: receiptData.id
+    }));
+
+    // Insert items
+    const { error: itemsError } = await supabase
+      .from('receipt_items')
+      .insert(itemsWithReceiptId);
+
+    if (itemsError) {
+      console.error('Error adding receipt items:', itemsError);
+      toast.error('Failed to add receipt items');
+      return null;
+    }
+
+    toast.success('Receipt created successfully');
+    return receiptData;
+  } catch (error) {
+    console.error('Error in createReceipt:', error);
     toast.error('Failed to create receipt');
     return null;
   }
-
-  // Add receipt ID to items
-  const itemsWithReceiptId = items.map(item => ({
-    ...item,
-    receipt_id: receiptData.id
-  }));
-
-  // Insert items
-  const { error: itemsError } = await supabase
-    .from('receipt_items')
-    .insert(itemsWithReceiptId);
-
-  if (itemsError) {
-    console.error('Error adding receipt items:', itemsError);
-    toast.error('Failed to add receipt items');
-    return null;
-  }
-
-  toast.success('Receipt created successfully');
-  return receiptData;
 }
 
 export async function updateReceipt(id: string, updatedFields: any) {
@@ -290,7 +296,6 @@ export async function updateReceipt(id: string, updatedFields: any) {
 }
 
 export async function updateReceiptPaymentStatus(id: string) {
-  // First get the receipt to determine the total
   const { data: receipt, error: fetchError } = await supabase
     .from('receipts')
     .select('total')
@@ -303,7 +308,6 @@ export async function updateReceiptPaymentStatus(id: string) {
     return null;
   }
 
-  // Update the receipt to set advance_payment to total (making it fully paid)
   const { data, error } = await supabase
     .from('receipts')
     .update({ 
@@ -381,8 +385,8 @@ export async function updateProductPosition(id: string, newPosition: number) {
       .order('position');
 
     if (error) {
-        console.error("Error fetching products for position update:", error);
-        return false;
+      console.error("Error fetching products for position update:", error);
+      return false;
     }
 
     if (!products) return false;
