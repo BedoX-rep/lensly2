@@ -131,7 +131,6 @@ const [selectedClient, setSelectedClient] = useState<string>('');
 
     const receipt = {
       client_id: selectedClient,
-      user_id: user.id,
       subtotal: calculateSubtotal(),
       total: calculateTotal(),
       advance_payment: advancePayment,
@@ -142,11 +141,9 @@ const [selectedClient, setSelectedClient] = useState<string>('');
       left_eye_sph: leftEyeSph ? parseFloat(leftEyeSph) : null,
       left_eye_cyl: leftEyeCyl ? parseFloat(leftEyeCyl) : null,
       left_eye_axe: leftEyeAxe ? parseFloat(leftEyeAxe) : null,
-      add_value: addValue ? parseFloat(addValue) : null,
       tax: 0,
-      delivery_status: 'Undelivered',
-      montage_status: 'UnOrdered',
-      created_at: new Date().toISOString(),
+      discount_percentage: null,
+      discount_amount: null
     };
 
     // Map items with correct structure

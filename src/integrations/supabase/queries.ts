@@ -235,28 +235,29 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
-    // Validate client exists
-    const { data: clientExists } = await supabase
-      .from('clients')
-      .select('id')
-      .eq('id', receipt.client_id)
-      .single();
-
-    if (!clientExists) {
-      console.error('Client not found');
-      toast.error('Invalid client selected');
-      return null;
-    }
-
-    // First create the receipt
+    // Create a clean receipt object that matches the database schema exactly
     const newReceipt = {
-      ...receipt,
+      client_id: receipt.client_id,
       user_id: user.id,
+      right_eye_sph: receipt.right_eye_sph || null,
+      right_eye_cyl: receipt.right_eye_cyl || null,
+      right_eye_axe: receipt.right_eye_axe || null,
+      left_eye_sph: receipt.left_eye_sph || null,
+      left_eye_cyl: receipt.left_eye_cyl || null,
+      left_eye_axe: receipt.left_eye_axe || null,
+      subtotal: receipt.subtotal || 0,
+      tax: receipt.tax || 0,
+      total: receipt.total || 0,
+      discount_percentage: receipt.discount_percentage || null,
+      discount_amount: receipt.discount_amount || null,
+      advance_payment: receipt.advance_payment || 0,
+      balance: receipt.balance || 0,
+      delivery_status: 'Undelivered',
+      montage_status: 'UnOrdered',
       created_at: new Date().toISOString()
     };
 
-    console.log('Creating receipt:', newReceipt);
-
+    // First create the receipt
     const { data: receiptData, error: receiptError } = await supabase
       .from('receipts')
       .insert([newReceipt])
@@ -269,15 +270,16 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
-    // Then create each receipt item individually
+    // Then create receipt items
     for (const item of items) {
       const newItem = {
         receipt_id: receiptData.id,
         user_id: user.id,
         product_id: item.product_id || null,
-        custom_item_name: !item.product_id ? item.name : null,
+        custom_item_name: item.custom_item_name || null,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        created_at: new Date().toISOString()
       };
 
       const { error: itemError } = await supabase
@@ -287,8 +289,6 @@ export async function createReceipt(receipt: any, items: any[]) {
       if (itemError) {
         console.error('Error adding receipt item:', itemError);
         toast.error('Failed to add receipt item');
-        // Continue adding other items even if one fails
-        continue;
       }
     }
 
