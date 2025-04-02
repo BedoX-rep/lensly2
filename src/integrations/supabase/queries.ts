@@ -18,9 +18,10 @@ export async function getProducts() {
 }
 
 export async function addProduct(name: string, price: number) {
+  const { data: { user } } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from('products')
-    .insert([{ name, price, user_id: supabase.auth.getUser().then(res => res.data.user?.id) }])
+    .insert([{ name, price, user_id: user?.id }])
     .select()
     .single();
 
@@ -101,9 +102,10 @@ export async function getClientById(id: string) {
 }
 
 export async function addClient(name: string, phone: string) {
+  const { data: { user } } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from('clients')
-    .insert([{ name, phone, user_id: supabase.auth.getUser().then(res => res.data.user?.id) }])
+    .insert([{ name, phone, user_id: user?.id }])
     .select()
     .single();
 
@@ -227,8 +229,13 @@ export async function createReceipt(receipt: any, items: any[]) {
   // Make sure we're using the current timestamp and include user_id
   receipt.created_at = new Date().toISOString();
   const { data: { user } } = await supabase.auth.getUser();
-  receipt.user_id = user?.id;
-  items = items.map(item => ({ ...item, user_id: user?.id }));
+  if (!user) {
+    console.error('No authenticated user found');
+    return null;
+  }
+  receipt.user_id = user.id;
+  // Note: receipt_items don't need user_id as per schema
+  items = items.map(item => ({ ...item }));
 
   // Start a transaction
   const { data: receiptData, error: receiptError } = await supabase
