@@ -242,7 +242,7 @@ export async function createReceipt(receipt: any, items: any[]) {
     const { data: receiptData, error: receiptError } = await supabase
       .from('receipts')
       .insert([receipt])
-      .select()
+      .select('*, clients(name, phone)')
       .single();
 
     if (receiptError) {
@@ -251,16 +251,17 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
-    // Add receipt ID to items
-    const itemsWithReceiptId = items.map(item => ({
+    // Add receipt ID and user_id to items
+    const itemsWithIds = items.map(item => ({
       ...item,
-      receipt_id: receiptData.id
+      receipt_id: receiptData.id,
+      user_id: user.id
     }));
 
     // Insert items
     const { error: itemsError } = await supabase
       .from('receipt_items')
-      .insert(itemsWithReceiptId);
+      .insert(itemsWithIds);
 
     if (itemsError) {
       console.error('Error adding receipt items:', itemsError);
