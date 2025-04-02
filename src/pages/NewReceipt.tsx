@@ -117,7 +117,7 @@ const [selectedClient, setSelectedClient] = useState<string>('');
       toast.error('Please select a client');
       return;
     }
-    
+
     if (items.length === 0) {
       toast.error('Please add at least one item to the receipt.');
       return;
@@ -136,13 +136,13 @@ const [selectedClient, setSelectedClient] = useState<string>('');
       total: calculateTotal(),
       advance_payment: advancePayment,
       balance: calculateBalance(),
-      right_eye_sph: parseFloat(rightEyeSph) || null,
-      right_eye_cyl: parseFloat(rightEyeCyl) || null,
-      right_eye_axe: parseFloat(rightEyeAxe) || null,
-      left_eye_sph: parseFloat(leftEyeSph) || null,
-      left_eye_cyl: parseFloat(leftEyeCyl) || null,
-      left_eye_axe: parseFloat(leftEyeAxe) || null,
-      add_value: parseFloat(addValue) || null,
+      right_eye_sph: rightEyeSph ? parseFloat(rightEyeSph) : null,
+      right_eye_cyl: rightEyeCyl ? parseFloat(rightEyeCyl) : null,
+      right_eye_axe: rightEyeAxe ? parseFloat(rightEyeAxe) : null,
+      left_eye_sph: leftEyeSph ? parseFloat(leftEyeSph) : null,
+      left_eye_cyl: leftEyeCyl ? parseFloat(leftEyeCyl) : null,
+      left_eye_axe: leftEyeAxe ? parseFloat(leftEyeAxe) : null,
+      add_value: addValue ? parseFloat(addValue) : null,
       tax: 0,
       delivery_status: 'Undelivered',
       montage_status: 'UnOrdered',
@@ -162,9 +162,9 @@ const [selectedClient, setSelectedClient] = useState<string>('');
 
     console.log('Receipt data:', receipt);
     console.log('Items data:', itemsData);
-    
+
     const result = await createReceipt(receipt, itemsData);
-    
+
     if (result) {
       toast.success('Receipt created successfully!');
       navigate('/receipts');
