@@ -1,3 +1,4 @@
+
 -- Enable RLS (Row Level Security)
 alter table products enable row level security;
 alter table clients enable row level security;
@@ -79,11 +80,7 @@ using (auth.uid() = user_id);
 
 create policy "Users can only see their own receipt items"
 on receipt_items for all
-using (
-    auth.uid() in (
-        select user_id from receipts where id = receipt_items.receipt_id
-    )
-);
+using (auth.uid() = user_id);
 
 -- Create indexes for better performance
 create index idx_products_user_id on products(user_id);
