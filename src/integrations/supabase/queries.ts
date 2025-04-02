@@ -235,6 +235,20 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
+    // Verify client belongs to user
+    const { data: clientData, error: clientError } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', receipt.client_id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (clientError || !clientData) {
+      console.error('Invalid client selected');
+      toast.error('Invalid client selected');
+      return null;
+    }
+
     receipt.user_id = user.id;
     receipt.created_at = new Date().toISOString();
 
@@ -251,11 +265,26 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
-    // Add receipt ID and user_id to items
-    const itemsWithIds = items.map(item => ({
-      ...item,
-      receipt_id: receiptData.id,
-      user_id: user.id
+    // Verify products belong to user and add receipt ID and user_id to items
+    const itemsWithIds = await Promise.all(items.map(async item => {
+      if (item.product_id) {
+        const { data: productData } = await supabase
+          .from('products')
+          .select('id')
+          .eq('id', item.product_id)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (!productData) {
+          throw new Error('Invalid product selected');
+        }
+      }
+      
+      return {
+        ...item,
+        receipt_id: receiptData.id,
+        user_id: user.id
+      };
     }));
 
     // Insert items

@@ -55,6 +55,7 @@ create table receipts (
 -- Create receipt_items table
 create table receipt_items (
     id uuid primary key default uuid_generate_v4(),
+    user_id uuid references auth.users(id) not null,
     receipt_id uuid references receipts(id) on delete cascade not null,
     product_id uuid references products(id),
     custom_item_name text,
@@ -91,6 +92,7 @@ create index idx_receipts_user_id on receipts(user_id);
 create index idx_receipts_client_id on receipts(client_id);
 create index idx_receipt_items_receipt_id on receipt_items(receipt_id);
 create index idx_receipt_items_product_id on receipt_items(product_id);
+create index idx_receipt_items_user_id on receipt_items(user_id);
 
 -- Create function to update product positions
 create or replace function update_positions(moved_id uuid, new_pos integer)
