@@ -226,19 +226,19 @@ export async function getClientReceipts(clientId: string) {
 }
 
 export async function createReceipt(receipt: any, items: any[]) {
-  // Make sure we're using the current timestamp and include user_id
-  receipt.created_at = new Date().toISOString();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    console.error('No authenticated user found');
-    return null;
-  }
-  receipt.user_id = user.id;
-  // Note: receipt_items don't need user_id as per schema
-  items = items.map(item => ({ ...item }));
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No authenticated user found');
+      toast.error('Authentication required');
+      return null;
+    }
 
-  // Start a transaction
-  const { data: receiptData, error: receiptError } = await supabase
+    receipt.user_id = user.id;
+    receipt.created_at = new Date().toISOString();
+
+    // Start the transaction
+    const { data: receiptData, error: receiptError } = await supabase
     .from('receipts')
     .insert([receipt])
     .select()

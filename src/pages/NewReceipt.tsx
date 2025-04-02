@@ -130,6 +130,8 @@ const NewReceipt: React.FC = () => {
       left_eye_axe: parseFloat(leftEyeAxe) || null,
       add_value: parseFloat(addValue) || null,
       tax: 0,
+      delivery_status: 'Undelivered',
+      montage_status: 'UnOrdered',
       created_at: new Date().toISOString(),
     };
 
