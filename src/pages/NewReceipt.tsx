@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from "@/components/ui/card";
 import Layout from '@/components/Layout';
 import { addProduct, getProducts, createReceipt } from '@/integrations/supabase/queries';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Product {
   id: string;
@@ -116,8 +117,15 @@ const NewReceipt: React.FC = () => {
       return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('You must be logged in to create a receipt');
+      return;
+    }
+
     const receipt = {
-      client_id: 'e946a0ca-7f74-499f-a9a4-65f5f99169a3',
+      client_id: selectedClient,
+      user_id: user.id,
       subtotal: calculateSubtotal(),
       total: calculateTotal(),
       advance_payment: advancePayment,
