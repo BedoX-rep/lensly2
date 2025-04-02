@@ -110,7 +110,7 @@ const NewReceipt: React.FC = () => {
     return calculateTotal() - advancePayment;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (items.length === 0) {
       toast.error('Please add at least one item to the receipt.');
       return;
@@ -139,11 +139,12 @@ const NewReceipt: React.FC = () => {
       price: item.price,
     }));
 
-    console.log('Receipt Data:', receiptData);
-    console.log('Items Data:', itemsData);
-
-    toast.success('Receipt created successfully!');
-    navigate('/receipts');
+    const result = await createReceipt(receiptData, itemsData);
+    
+    if (result) {
+      toast.success('Receipt created successfully!');
+      navigate('/receipts');
+    }
   };
 
   return (
