@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from "@/components/ui/card";
 import Layout from '@/components/Layout';
-import { addProduct, getProducts } from '@/integrations/supabase/queries';
+import { addProduct, getProducts, createReceipt } from '@/integrations/supabase/queries';
 
 interface Product {
   id: string;
@@ -116,7 +116,7 @@ const NewReceipt: React.FC = () => {
       return;
     }
 
-    const receiptData = {
+    const receipt = {
       client_id: 'e946a0ca-7f74-499f-a9a4-65f5f99169a3',
       subtotal: calculateSubtotal(),
       total: calculateTotal(),
@@ -141,7 +141,7 @@ const NewReceipt: React.FC = () => {
       price: item.price,
     }));
 
-    const result = await createReceipt(receiptData, itemsData);
+    const result = await createReceipt(receipt, itemsData);
     
     if (result) {
       toast.success('Receipt created successfully!');
