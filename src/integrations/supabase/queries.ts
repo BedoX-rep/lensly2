@@ -235,28 +235,17 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
-    // Verify client belongs to user
-    const { data: clientData, error: clientError } = await supabase
-      .from('clients')
-      .select('id')
-      .eq('id', receipt.client_id)
-      .eq('user_id', user.id)
-      .single();
+    // First create the receipt
+    const newReceipt = {
+      ...receipt,
+      user_id: user.id,
+      created_at: new Date().toISOString()
+    };
 
-    if (clientError || !clientData) {
-      console.error('Invalid client selected');
-      toast.error('Invalid client selected');
-      return null;
-    }
-
-    receipt.user_id = user.id;
-    receipt.created_at = new Date().toISOString();
-
-    // Start the transaction
     const { data: receiptData, error: receiptError } = await supabase
       .from('receipts')
-      .insert([receipt])
-      .select('*, clients(name, phone)')
+      .insert([newReceipt])
+      .select()
       .single();
 
     if (receiptError) {
@@ -265,37 +254,27 @@ export async function createReceipt(receipt: any, items: any[]) {
       return null;
     }
 
-    // Verify products belong to user and add receipt ID and user_id to items
-    const itemsWithIds = await Promise.all(items.map(async item => {
-      if (item.product_id) {
-        const { data: productData } = await supabase
-          .from('products')
-          .select('id')
-          .eq('id', item.product_id)
-          .eq('user_id', user.id)
-          .single();
-        
-        if (!productData) {
-          throw new Error('Invalid product selected');
-        }
-      }
-      
-      return {
-        ...item,
+    // Then create each receipt item individually
+    for (const item of items) {
+      const newItem = {
         receipt_id: receiptData.id,
-        user_id: user.id
+        user_id: user.id,
+        product_id: item.product_id || null,
+        custom_item_name: !item.product_id ? item.name : null,
+        quantity: item.quantity,
+        price: item.price
       };
-    }));
 
-    // Insert items
-    const { error: itemsError } = await supabase
-      .from('receipt_items')
-      .insert(itemsWithIds);
+      const { error: itemError } = await supabase
+        .from('receipt_items')
+        .insert([newItem]);
 
-    if (itemsError) {
-      console.error('Error adding receipt items:', itemsError);
-      toast.error('Failed to add receipt items');
-      return null;
+      if (itemError) {
+        console.error('Error adding receipt item:', itemError);
+        toast.error('Failed to add receipt item');
+        // Continue adding other items even if one fails
+        continue;
+      }
     }
 
     toast.success('Receipt created successfully');
