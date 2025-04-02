@@ -30,6 +30,7 @@ const NewReceipt: React.FC = () => {
   const [leftEyeCyl, setLeftEyeCyl] = useState<string>('');
   const [leftEyeAxe, setLeftEyeAxe] = useState<string>('');
   const [addValue, setAddValue] = useState<string>('');
+const [selectedClient, setSelectedClient] = useState<string>('');
 
   useEffect(() => {
     loadProducts();
@@ -112,6 +113,11 @@ const NewReceipt: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (!selectedClient) {
+      toast.error('Please select a client');
+      return;
+    }
+    
     if (items.length === 0) {
       toast.error('Please add at least one item to the receipt.');
       return;

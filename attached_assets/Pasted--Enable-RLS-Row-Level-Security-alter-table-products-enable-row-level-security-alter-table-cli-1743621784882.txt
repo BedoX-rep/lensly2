@@ -78,9 +78,15 @@ create policy "Users can only see their own receipts"
 on receipts for all
 using (auth.uid() = user_id);
 
-create policy "Users can only see their own receipt items"
+create policy "Users can only see receipt items from their receipts"
 on receipt_items for all
-using (auth.uid() = user_id);
+using (
+    auth.uid() = (
+        select user_id 
+        from receipts 
+        where id = receipt_items.receipt_id
+    )
+);
 
 -- Create indexes for better performance
 create index idx_products_user_id on products(user_id);
