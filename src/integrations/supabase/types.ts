@@ -1,3 +1,12 @@
+export interface Subscription {
+  id: string;
+  user_id: string;
+  start_date: string;
+  end_date: string;
+  trial_used: boolean;
+  created_at: string;
+}
+
 export type Json =
   | string
   | number

@@ -1,4 +1,45 @@
 
+// Subscription queries
+export async function createTrialSubscription(userId: string) {
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + 7); // 7 days trial
+
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .insert({
+      user_id: userId,
+      end_date: endDate.toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating trial subscription:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function getActiveSubscription(userId: string) {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('end_date', new Date().toISOString())
+    .order('end_date', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+    console.error('Error fetching subscription:', error);
+    return null;
+  }
+
+  return data;
+}
+
+
 import { supabase } from "./client";
 import { toast } from "sonner";
 

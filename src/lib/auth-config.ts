@@ -9,6 +9,16 @@ export async function signInWithEmail(email: string, password: string) {
       email,
       password,
     });
+    
+    if (data.user) {
+      // Check if user has an active subscription
+      const subscription = await getActiveSubscription(data.user.id);
+      if (!subscription) {
+        // Create trial subscription if none exists
+        await createTrialSubscription(data.user.id);
+      }
+    }
+    
     return { data, error };
   } catch (error) {
     console.error('Auth error:', error);
