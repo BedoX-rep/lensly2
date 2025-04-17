@@ -68,7 +68,8 @@ export default function Login() {
       if (error) {
         toast.error("Signup failed: " + error.message);
       } else {
-        toast.success("Please check your email to confirm your account");
+        await createTrialSubscription();
+        toast.success("Account created with 7-day trial subscription");
         setActiveTab("login");
       }
     } catch (err) {

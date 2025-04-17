@@ -460,3 +460,46 @@ export function formatDate(dateString: string): string {
     timeZone: 'Africa/Casablanca'
   }).format(date);
 }
+// Subscription queries
+export async function createTrialSubscription() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .insert([{
+      user_id: user.id,
+      start_date: new Date(),
+      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      is_active: true,
+      payment_status: 'trial'
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating subscription:', error);
+    return null;
+  }
+
+  return data;
+}
+
+export async function checkSubscriptionStatus() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single();
+
+  if (error) {
+    console.error('Error checking subscription:', error);
+    return null;
+  }
+
+  return data;
+}

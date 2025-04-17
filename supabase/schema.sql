@@ -1,4 +1,41 @@
 
+-- Create subscriptions table
+create table public.subscriptions (
+    id uuid default gen_random_uuid() primary key,
+    user_id uuid references auth.users(id) not null,
+    start_date timestamp with time zone default now(),
+    end_date timestamp with time zone default (now() + interval '7 days'),
+    is_active boolean default true,
+    payment_status text default 'trial',
+    created_at timestamp with time zone default now()
+);
+
+-- Enable RLS
+alter table public.subscriptions enable row level security;
+
+-- Create policies
+create policy "Users can view their own subscription"
+on public.subscriptions for select
+to authenticated
+using (auth.uid() = user_id);
+
+-- Function to automatically deactivate expired subscriptions
+create or replace function check_subscription_expiry()
+returns trigger as $$
+begin
+  if new.end_date < now() then
+    new.is_active := false;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger to check expiration on insert/update
+create trigger check_subscription_expiry_trigger
+before insert or update on public.subscriptions
+for each row execute function check_subscription_expiry();
+
+
 -- Enable RLS
 alter table public.products enable row level security;
 alter table public.clients enable row level security;
