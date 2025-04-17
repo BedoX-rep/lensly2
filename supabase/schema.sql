@@ -10,6 +10,9 @@ create table public.subscriptions (
     created_at timestamp with time zone default now()
 );
 
+-- Add index for faster subscription lookups
+create index idx_subscriptions_user_active on public.subscriptions(user_id, is_active);
+
 -- Enable RLS
 alter table public.subscriptions enable row level security;
 

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, hasActiveSubscription } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   
   // Login state

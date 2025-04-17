@@ -486,20 +486,39 @@ export async function createTrialSubscription() {
 }
 
 export async function checkSubscriptionStatus() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
 
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('is_active', true)
-    .single();
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .single();
 
-  if (error) {
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No subscription found
+        return null;
+      }
+      throw error;
+    }
+
+    // Check if subscription has expired
+    if (data.end_date && new Date(data.end_date) < new Date()) {
+      await supabase
+        .from('subscriptions')
+        .update({ is_active: false })
+        .eq('id', data.id);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
     console.error('Error checking subscription:', error);
+    toast.error('Failed to check subscription status');
     return null;
   }
-
-  return data;
 }
