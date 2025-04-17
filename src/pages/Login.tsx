@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, hasActiveSubscription } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   
   // Login state
@@ -68,8 +68,7 @@ export default function Login() {
       if (error) {
         toast.error("Signup failed: " + error.message);
       } else {
-        await createTrialSubscription();
-        toast.success("Account created with 7-day trial subscription");
+        toast.success("Please check your email to confirm your account");
         setActiveTab("login");
       }
     } catch (err) {

@@ -26,7 +26,6 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   useEffect(() => {
     // Get initial session
@@ -38,18 +37,10 @@ export function useAuth() {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsAuthenticated(!!session);
-      
-      if (session?.user) {
-        const subscriptionStatus = await checkSubscriptionStatus();
-        setHasActiveSubscription(!!subscriptionStatus);
-      } else {
-        setHasActiveSubscription(false);
-      }
-      
       setIsLoading(false);
     });
 
