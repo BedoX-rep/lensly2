@@ -21,7 +21,19 @@ export async function signInWithEmail(email: string, password: string) {
           .single();
 
         if (subError?.code === 'PGRST116' || !subscription) {
+          // No subscription found, create trial
           await createTrialSubscription(data.user.id);
+        } else {
+          // Check if subscription is expired
+          const currentDate = new Date();
+          const endDate = new Date(subscription.end_date);
+          
+          if (currentDate > endDate) {
+            // Subscription expired
+            error = { message: 'Your subscription has expired. Please renew to continue.' };
+            await supabase.auth.signOut();
+            return { data: null, error };
+          }
         }
       } catch (error) {
         console.error('Subscription check error:', error);
