@@ -1,0 +1,36 @@
+[15:59:19.808] Cloning github.com/BedoX-rep/lensly (Branch: main, Commit: 5960a33)
+[15:59:21.737] Cloning completed: 1.929s
+[15:59:22.771] Restored build cache from previous deployment (FsWkAUyJ7M88UjHVEaCyBXGMKUx9)
+[15:59:22.858] Running build in Washington, D.C., USA (East) – iad1
+[15:59:23.296] Running "vercel build"
+[15:59:23.667] Vercel CLI 41.4.1
+[15:59:24.494] Installing dependencies...
+[15:59:26.431] npm error code ERESOLVE
+[15:59:26.432] npm error ERESOLVE could not resolve
+[15:59:26.432] npm error
+[15:59:26.432] npm error While resolving: react-day-picker@8.10.1
+[15:59:26.433] npm error Found: date-fns@4.1.0
+[15:59:26.433] npm error node_modules/date-fns
+[15:59:26.433] npm error   date-fns@"^4.1.0" from the root project
+[15:59:26.433] npm error
+[15:59:26.434] npm error Could not resolve dependency:
+[15:59:26.435] npm error peer date-fns@"^2.28.0 || ^3.0.0" from react-day-picker@8.10.1
+[15:59:26.436] npm error node_modules/react-day-picker
+[15:59:26.436] npm error   react-day-picker@"^8.10.1" from the root project
+[15:59:26.436] npm error
+[15:59:26.436] npm error Conflicting peer dependency: date-fns@3.6.0
+[15:59:26.437] npm error node_modules/date-fns
+[15:59:26.437] npm error   peer date-fns@"^2.28.0 || ^3.0.0" from react-day-picker@8.10.1
+[15:59:26.437] npm error   node_modules/react-day-picker
+[15:59:26.437] npm error     react-day-picker@"^8.10.1" from the root project
+[15:59:26.437] npm error
+[15:59:26.438] npm error Fix the upstream dependency conflict, or retry
+[15:59:26.438] npm error this command with --force or --legacy-peer-deps
+[15:59:26.438] npm error to accept an incorrect (and potentially broken) dependency resolution.
+[15:59:26.438] npm error
+[15:59:26.438] npm error
+[15:59:26.438] npm error For a full report see:
+[15:59:26.439] npm error /vercel/.npm/_logs/2025-03-21T15_59_25_306Z-eresolve-report.txt
+[15:59:26.439] npm error A complete log of this run can be found in: /vercel/.npm/_logs/2025-03-21T15_59_25_306Z-debug-0.log
+[15:59:26.469] Error: Command "npm install" exited with 1
+[15:59:26.806] 
