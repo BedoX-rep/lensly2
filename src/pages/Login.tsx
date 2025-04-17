@@ -67,12 +67,17 @@ export default function Login() {
 
       if (error) {
         toast.error("Signup failed: " + error.message);
-      } else {
-        toast.success("Please check your email to confirm your account");
+        return;
+      }
+
+      if (data.user) {
+        await createTrialSubscription(data.user.id);
+        toast.success("Account created successfully with trial subscription");
         setActiveTab("login");
       }
     } catch (err) {
-      toast.error("An error occurred during signup");
+      console.error('Signup error:', err);
+      toast.error("Failed to complete signup process");
     } finally {
       setIsSignupLoading(false);
     }

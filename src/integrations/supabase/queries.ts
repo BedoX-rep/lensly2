@@ -1,24 +1,28 @@
 
 // Subscription queries
+import { supabaseAdmin } from './admin-client';
+
 export async function createTrialSubscription(userId: string) {
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() + 7); // 7 days trial
+  try {
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 7); // 7 days trial
 
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .insert({
-      user_id: userId,
-      end_date: endDate.toISOString(),
-    })
-    .select()
-    .single();
+    const { data, error } = await supabaseAdmin
+      .from('subscriptions')
+      .insert({
+        user_id: userId,
+        end_date: endDate.toISOString(),
+        trial_used: true
+      })
+      .select()
+      .single();
 
-  if (error) {
+    if (error) throw error;
+    return data;
+  } catch (error) {
     console.error('Error creating trial subscription:', error);
-    return null;
+    throw error;
   }
-
-  return data;
 }
 
 export async function getActiveSubscription(userId: string) {
