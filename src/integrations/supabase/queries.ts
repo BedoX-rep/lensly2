@@ -461,12 +461,6 @@ export function formatDate(dateString: string): string {
   }).format(date);
 }
 // Subscription queries
-const serviceRole = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-const supabaseAdmin = createClient<Database>(
-  import.meta.env.VITE_SUPABASE_URL,
-  serviceRole
-);
-
 export async function createTrialSubscription() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -505,30 +499,6 @@ export async function checkSubscriptionStatus() {
   if (error) {
     console.error('Error checking subscription:', error);
     return null;
-  }
-
-  return data;
-}
-export async function createTrialSubscription() {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) throw new Error('No user found');
-
-  const { data, error } = await supabaseAdmin
-    .from('subscriptions')
-    .insert({
-      user_id: user.id,
-      start_date: new Date().toISOString(),
-      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      is_active: true,
-      payment_status: 'trial'
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating subscription:', error);
-    throw error;
   }
 
   return data;

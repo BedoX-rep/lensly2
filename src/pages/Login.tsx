@@ -25,13 +25,11 @@ export default function Login() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignupLoading, setIsSignupLoading] = useState(false);
 
-  const { isAuthenticated, isLoading } = useAuth();
-  
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated) {
       navigate("/");
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,17 +67,10 @@ export default function Login() {
 
       if (error) {
         toast.error("Signup failed: " + error.message);
-      } else if (data?.user) {
-        try {
-          await createTrialSubscription();
-          toast.success("Account created! Please check your email to confirm your account");
-          setActiveTab("login");
-        } catch (subscriptionError) {
-          console.error("Error creating subscription:", subscriptionError);
-          toast.error("Account created but subscription setup failed. Please contact support.");
-        }
       } else {
-        toast.error("Signup failed: Unknown error");
+        await createTrialSubscription();
+        toast.success("Account created with 7-day trial subscription");
+        setActiveTab("login");
       }
     } catch (err) {
       toast.error("An error occurred during signup");
