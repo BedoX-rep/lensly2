@@ -4,6 +4,7 @@ import { supabaseAdmin } from './admin-client';
 
 export async function createTrialSubscription(userId: string) {
   try {
+    const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 7); // 7 days trial
 
@@ -11,17 +12,23 @@ export async function createTrialSubscription(userId: string) {
       .from('subscriptions')
       .insert({
         user_id: userId,
+        start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
-        trial_used: true
+        trial_used: true,
+        created_at: startDate.toISOString()
       })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Database error creating subscription:', error);
+      return null;
+    }
+    
     return data;
   } catch (error) {
     console.error('Error creating trial subscription:', error);
-    throw error;
+    return null;
   }
 }
 

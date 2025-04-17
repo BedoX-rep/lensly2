@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmail, useAuth } from "@/lib/auth-config";
+import { createTrialSubscription } from "@/integrations/supabase/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,9 +72,18 @@ export default function Login() {
       }
 
       if (data.user) {
-        await createTrialSubscription(data.user.id);
-        toast.success("Account created successfully with trial subscription");
-        setActiveTab("login");
+        try {
+          const subscription = await createTrialSubscription(data.user.id);
+          if (subscription) {
+            toast.success("Account created successfully with trial subscription");
+            setActiveTab("login");
+          } else {
+            toast.error("Failed to create trial subscription");
+          }
+        } catch (subscriptionError) {
+          console.error('Subscription creation error:', subscriptionError);
+          toast.error("Failed to create trial subscription");
+        }
       }
     } catch (err) {
       console.error('Signup error:', err);
