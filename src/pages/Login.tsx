@@ -67,10 +67,17 @@ export default function Login() {
 
       if (error) {
         toast.error("Signup failed: " + error.message);
+      } else if (data?.user) {
+        try {
+          await createTrialSubscription();
+          toast.success("Account created! Please check your email to confirm your account");
+          setActiveTab("login");
+        } catch (subscriptionError) {
+          console.error("Error creating subscription:", subscriptionError);
+          toast.error("Account created but subscription setup failed. Please contact support.");
+        }
       } else {
-        await createTrialSubscription();
-        toast.success("Account created with 7-day trial subscription");
-        setActiveTab("login");
+        toast.error("Signup failed: Unknown error");
       }
     } catch (err) {
       toast.error("An error occurred during signup");
