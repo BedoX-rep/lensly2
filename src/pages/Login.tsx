@@ -25,11 +25,13 @@ export default function Login() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignupLoading, setIsSignupLoading] = useState(false);
 
+  const { isAuthenticated, isLoading } = useAuth();
+  
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       navigate("/");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

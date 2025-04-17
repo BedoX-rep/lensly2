@@ -1,7 +1,9 @@
+-- Enable UUID extension
+create extension if not exists "uuid-ossp";
 
 -- Create subscriptions table
-create table public.subscriptions (
-    id uuid default gen_random_uuid() primary key,
+create table if not exists public.subscriptions (
+    id uuid default uuid_generate_v4() primary key,
     user_id uuid references auth.users(id) not null,
     start_date timestamp with time zone default now(),
     end_date timestamp with time zone default (now() + interval '7 days'),
@@ -16,7 +18,6 @@ alter table public.subscriptions enable row level security;
 -- Create policies
 create policy "Users can view their own subscription"
 on public.subscriptions for select
-to authenticated
 using (auth.uid() = user_id);
 
 -- Function to automatically deactivate expired subscriptions
@@ -131,3 +132,16 @@ create policy "Users can delete their own receipt items"
 on public.receipt_items for delete
 to authenticated
 using (auth.uid() = user_id);
+
+-- Create subscription check function
+create or replace function public.check_subscription(user_id uuid)
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.subscriptions
+    where subscriptions.user_id = check_subscription.user_id
+    and end_date > now()
+    and is_active = true
+  );
+end;
+$$ language plpgsql security definer;

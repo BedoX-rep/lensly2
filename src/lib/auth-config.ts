@@ -21,6 +21,35 @@ export async function signOut() {
   return { error };
 }
 
+async function checkSubscriptionStatus(userId: string) {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error checking subscription:', error);
+    return false;
+  }
+
+  if (!data) return false;
+
+  const now = new Date();
+  const endDate = new Date(data.end_date);
+  const isActive = endDate > now && data.is_active;
+
+  if (!isActive && data.is_active) {
+    // Update subscription status to inactive
+    await supabase
+      .from('subscriptions')
+      .update({ is_active: false })
+      .eq('user_id', userId);
+  }
+
+  return isActive;
+}
+
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
