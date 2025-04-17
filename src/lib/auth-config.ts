@@ -12,15 +12,18 @@ export async function signInWithEmail(email: string, password: string) {
     
     if (data.user) {
       // Check if user has any subscription
-      const { data: subscription } = await supabase
+      const { data: subscription, error: subError } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', data.user.id)
         .single();
       
-      if (!subscription) {
+      if (subError?.code === 'PGRST116' || !subscription) {
         // Create trial subscription if none exists
-        await createTrialSubscription(data.user.id);
+        const newSubscription = await createTrialSubscription(data.user.id);
+        if (!newSubscription) {
+          console.error('Failed to create trial subscription');
+        }
       }
     }
     
