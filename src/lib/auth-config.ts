@@ -30,9 +30,9 @@ export async function signInWithEmail(email: string, password: string) {
           
           if (currentDate > endDate) {
             // Subscription expired
-            error = { message: 'Your subscription has expired. Please renew to continue.' };
+            const subscriptionError = { message: 'Your subscription has expired. Please renew to continue.' };
             await supabase.auth.signOut();
-            return { data: null, error };
+            return { data: null, error: subscriptionError };
           }
         }
       } catch (error) {
