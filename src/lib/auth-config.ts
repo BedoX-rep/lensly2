@@ -11,8 +11,13 @@ export async function signInWithEmail(email: string, password: string) {
     });
     
     if (data.user) {
-      // Check if user has an active subscription
-      const subscription = await getActiveSubscription(data.user.id);
+      // Check if user has any subscription
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .single();
+      
       if (!subscription) {
         // Create trial subscription if none exists
         await createTrialSubscription(data.user.id);
