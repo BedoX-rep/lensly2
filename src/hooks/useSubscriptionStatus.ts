@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +16,7 @@ export function useSubscriptionStatus(userId: string | undefined) {
     const checkSubscription = async () => {
       const { data: subscription, error } = await supabase
         .from('subscriptions')
-        .select('end_date')
+        .select('end_date, user_id')
         .eq('user_id', userId)
         .single();
 
