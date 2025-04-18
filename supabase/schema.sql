@@ -12,11 +12,15 @@ alter table public.receipts add column user_id uuid references auth.users(id) de
 alter table public.receipt_items add column user_id uuid references auth.users(id) default auth.uid();
 
 -- Create subscriptions table
+-- Create subscription type enum
+create type subscription_type as enum ('Trial', 'Monthly', 'Quarterly', 'Lifetime');
+
 create table public.subscriptions (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) not null,
   start_date timestamp with time zone default now(),
   end_date timestamp with time zone not null,
+  subscription_type subscription_type default 'Trial',
   trial_used boolean default true,
   created_at timestamp with time zone default now()
 );
