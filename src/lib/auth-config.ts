@@ -1,50 +1,13 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { createTrialSubscription } from '@/integrations/supabase/queries';
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 
 export async function signInWithEmail(email: string, password: string) {
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (data.user) {
-      try {
-        // Check if user has any subscription
-        const { data: subscription, error: subError } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', data.user.id)
-          .single();
-
-        if (subError?.code === 'PGRST116' || !subscription) {
-          // No subscription found, create trial
-          await createTrialSubscription(data.user.id);
-        } else {
-          // Check if subscription is expired
-          const currentDate = new Date();
-          const endDate = new Date(subscription.end_date);
-          
-          if (currentDate > endDate) {
-            // Subscription expired
-            const subscriptionError = { message: 'Your subscription has expired. Please renew to continue.' };
-            await supabase.auth.signOut();
-            return { data: null, error: subscriptionError };
-          }
-        }
-      } catch (error) {
-        console.error('Subscription check error:', error);
-      }
-    }
-    
-    return { data, error };
-  } catch (error) {
-    console.error('Auth error:', error);
-    return { data: null, error };
-  }
+  return supabase.auth.signInWithPassword({
+    email,
+    password
+  });
 }
 
 export async function signOut() {
