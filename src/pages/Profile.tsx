@@ -5,7 +5,7 @@ import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 export default function Profile() {
   const { user } = useAuth();
-  const { daysRemaining, hoursRemaining } = useSubscriptionStatus(user?.id);
+  const { daysRemaining, hoursRemaining, subscription } = useSubscriptionStatus(user?.id);
 
   return (
     <div className="container mx-auto py-6">
