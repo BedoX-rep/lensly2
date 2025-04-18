@@ -74,8 +74,16 @@ export function useGlobalSubscriptionChecker() {
 
       if (expiredSubscriptions) {
         for (const subscription of expiredSubscriptions) {
-          // Force sign out for each expired subscription's user
-          await supabase.auth.signOut({ scope: subscription.user_id });
+          try {
+            // Force sign out and clear all session data
+            await supabase.auth.signOut();
+            // Clear any cached auth state
+            window.localStorage.removeItem('sb-' + import.meta.env.VITE_SUPABASE_URL + '-auth-token');
+            // Force page reload to clear any remaining state
+            window.location.reload();
+          } catch (error) {
+            console.error('Error signing out user:', error);
+          }
         }
       }
     };
