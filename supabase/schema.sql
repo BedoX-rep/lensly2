@@ -14,6 +14,10 @@ alter table public.receipt_items add column user_id uuid references auth.users(i
 -- Create subscriptions table
 -- Create subscription type enum
 create type subscription_type as enum ('Trial', 'Monthly', 'Quarterly', 'Lifetime');
+create type subscription_status as enum ('Active', 'Suspended', 'Cancelled');
+
+-- Add admin flag to auth.users
+alter table auth.users add column is_admin boolean default false;
 
 create table public.subscriptions (
   id uuid default gen_random_uuid() primary key,
@@ -21,8 +25,10 @@ create table public.subscriptions (
   start_date timestamp with time zone default now(),
   end_date timestamp with time zone not null,
   subscription_type subscription_type default 'Trial',
+  subscription_status subscription_status default 'Active',
   trial_used boolean default true,
-  created_at timestamp with time zone default now()
+  created_at timestamp with time zone default now(),
+  modified_by uuid references auth.users(id)
 );
 
 -- Enable RLS on subscriptions
@@ -32,12 +38,22 @@ alter table public.subscriptions enable row level security;
 create policy "Users can view their own subscription"
 on public.subscriptions for select
 to authenticated
-using (auth.uid() = user_id);
+using (auth.uid() = user_id OR (select is_admin from auth.users where id = auth.uid()));
 
 create policy "System can create subscriptions"
 on public.subscriptions for insert
 to authenticated
-with check (auth.uid() = user_id);
+with check (auth.uid() = user_id OR (select is_admin from auth.users where id = auth.uid()));
+
+create policy "Admins can update subscriptions"
+on public.subscriptions for update
+to authenticated
+using ((select is_admin from auth.users where id = auth.uid()));
+
+create policy "Admins can delete subscriptions"
+on public.subscriptions for delete
+to authenticated
+using ((select is_admin from auth.users where id = auth.uid()));
 
 -- Create RLS policies
 create policy "Users can create their own products"

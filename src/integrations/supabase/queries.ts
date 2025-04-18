@@ -32,6 +32,50 @@ export async function createTrialSubscription(userId: string) {
   }
 }
 
+export async function isAdmin(userId: string) {
+  const { data, error } = await supabase
+    .from('auth.users')
+    .select('is_admin')
+    .eq('id', userId)
+    .single();
+    
+  return data?.is_admin || false;
+}
+
+export async function getAllSubscriptions() {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*, auth.users(email)');
+
+  if (error) {
+    console.error('Error fetching subscriptions:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function updateSubscriptionStatus(
+  subscriptionId: string,
+  status: SubscriptionStatus,
+  adminId: string
+) {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .update({ 
+      subscription_status: status,
+      modified_by: adminId
+    })
+    .eq('id', subscriptionId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating subscription:', error);
+    return null;
+  }
+  return data;
+}
+
 export async function getActiveSubscription(userId: string) {
   const { data, error } = await supabase
     .from('subscriptions')

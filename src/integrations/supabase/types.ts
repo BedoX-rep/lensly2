@@ -1,10 +1,19 @@
+export type SubscriptionStatus = 'Active' | 'Suspended' | 'Cancelled';
+
 export interface Subscription {
   id: string;
   user_id: string;
   start_date: string;
   end_date: string;
+  subscription_type: 'Trial' | 'Monthly' | 'Quarterly' | 'Lifetime';
+  subscription_status: SubscriptionStatus;
   trial_used: boolean;
   created_at: string;
+  modified_by?: string;
+}
+
+export interface AdminUser extends User {
+  is_admin: boolean;
 }
 
 export type Json =
