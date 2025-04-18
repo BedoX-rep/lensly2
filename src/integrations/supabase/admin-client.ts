@@ -1,15 +1,20 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { supabase } from './client';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  throw new Error('Missing Supabase admin credentials');
+export async function isAdmin() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  
+  const { data } = await supabase
+    .from('users')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
+    
+  return data?.is_admin || false;
 }
-
-export const adminClient = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 export async function updateSubscription(
   subscriptionId: string,
@@ -20,17 +25,21 @@ export async function updateSubscription(
   },
   notes?: string
 ) {
-  const { data: oldSub } = await adminClient
+  if (!await isAdmin()) {
+    throw new Error('Unauthorized');
+  }
+
+  const { data: oldSub, error: fetchError } = await supabase
     .from('subscriptions')
     .select('*')
     .eq('id', subscriptionId)
     .single();
 
-  if (!oldSub) {
+  if (fetchError || !oldSub) {
     throw new Error('Subscription not found');
   }
 
-  const { data: updatedSub, error: updateError } = await adminClient
+  const { data: updatedSub, error: updateError } = await supabase
     .from('subscriptions')
     .update({
       end_date: data.end_date || oldSub.end_date,
@@ -44,11 +53,11 @@ export async function updateSubscription(
   if (updateError) throw updateError;
 
   // Create audit log
-  const { error: auditError } = await adminClient
+  const { error: auditError } = await supabase
     .from('subscription_audit_logs')
     .insert({
       subscription_id: subscriptionId,
-      modified_by: (await adminClient.auth.getUser()).data.user?.id,
+      modified_by: (await supabase.auth.getUser()).data.user?.id,
       previous_status: oldSub.status,
       new_status: updatedSub.status,
       previous_end_date: oldSub.end_date,
@@ -63,12 +72,16 @@ export async function updateSubscription(
   return updatedSub;
 }
 
-export async function getSubscriptions(query = '') {
-  const { data, error } = await adminClient
+export async function getSubscriptions() {
+  if (!await isAdmin()) {
+    throw new Error('Unauthorized');
+  }
+
+  const { data, error } = await supabase
     .from('subscriptions')
     .select(`
       *,
-      users:user_id (
+      user:user_id (
         email,
         created_at
       )
@@ -80,7 +93,11 @@ export async function getSubscriptions(query = '') {
 }
 
 export async function getAuditLogs(subscriptionId?: string) {
-  let query = adminClient
+  if (!await isAdmin()) {
+    throw new Error('Unauthorized');
+  }
+
+  let query = supabase
     .from('subscription_audit_logs')
     .select(`
       *,

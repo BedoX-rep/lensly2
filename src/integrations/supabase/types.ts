@@ -1,6 +1,13 @@
 export type SubscriptionStatus = 'Active' | 'Suspended' | 'Cancelled';
 export type SubscriptionType = 'Trial' | 'Monthly' | 'Quarterly' | 'Lifetime';
 
+export interface User {
+  id: string;
+  email: string;
+  is_admin: boolean;
+  created_at: string;
+}
+
 export interface Subscription {
   id: string;
   user_id: string;
