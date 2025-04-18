@@ -1,6 +1,6 @@
 
 // Subscription queries
-import { supabaseAdmin } from './admin-client';
+import { supabase } from './client';
 
 export async function createTrialSubscription(userId: string) {
   try {
