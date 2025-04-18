@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -33,7 +32,7 @@ const NavItem = ({ to, children }: { to: string; children: React.ReactNode }) =>
 };
 
 export const Navbar = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth(); // Added user to access user.is_admin
   const navigate = useNavigate();
 
   return (
@@ -57,6 +56,11 @@ export const Navbar = () => {
               <DropdownMenuItem onClick={() => navigate('/profile')}>
                 Profile
               </DropdownMenuItem>
+              {user?.is_admin && ( // Conditional rendering of Admin Panel link
+                <DropdownMenuItem onClick={() => navigate('/admin')}>
+                  Admin Panel
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => {
                 logout();
                 navigate('/login');

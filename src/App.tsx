@@ -12,7 +12,8 @@ import Receipt from "@/pages/Receipt";
 import Receipts from "@/pages/Receipts";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
-import Profile from "@/pages/Profile"; // Import the Profile component
+import Profile from "@/pages/Profile";
+import Admin from "@/pages/Admin"; // Import the Admin component
 
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => {
             <Route path="/receipts" element={<ProtectedRoute><Receipts /></ProtectedRoute>} />
             <Route path="/receipt/new" element={<ProtectedRoute><Receipt /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} /> {/* Added Admin route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
