@@ -58,65 +58,20 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
 
-  const checkSubscription = async (userId: string) => {
-    try {
-      const { data: subscription, error: subError } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (subError?.code === 'PGRST116' || !subscription) {
-        await createTrialSubscription(userId);
-        return true;
-      }
-
-      const currentDate = new Date();
-      const endDate = new Date(subscription.end_date);
-      
-      if (currentDate > endDate) {
-        await supabase.auth.signOut();
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Subscription check error:', error);
-      return false;
-    }
-  };
-
   useEffect(() => {
-    const checkSessionAndSubscription = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        const isSubscriptionValid = await checkSubscription(session.user.id);
-        setIsAuthenticated(isSubscriptionValid);
-        setUser(isSubscriptionValid ? session.user : null);
-        setSession(isSubscriptionValid ? session : null);
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-        setSession(null);
-      }
-      
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
       setIsLoading(false);
-    };
+    });
 
-    checkSessionAndSubscription();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const isSubscriptionValid = await checkSubscription(session.user.id);
-        setIsAuthenticated(isSubscriptionValid);
-        setUser(isSubscriptionValid ? session.user : null);
-        setSession(isSubscriptionValid ? session : null);
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-        setSession(null);
-      }
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
       setIsLoading(false);
     });
 
