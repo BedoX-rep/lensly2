@@ -1,3 +1,6 @@
+export type SubscriptionStatus = 'Active' | 'Suspended' | 'Cancelled';
+export type SubscriptionType = 'Trial' | 'Monthly' | 'Quarterly' | 'Lifetime';
+
 export interface Subscription {
   id: string;
   user_id: string;
@@ -5,6 +8,22 @@ export interface Subscription {
   end_date: string;
   trial_used: boolean;
   created_at: string;
+  status: SubscriptionStatus;
+  subscription_type: SubscriptionType;
+}
+
+export interface SubscriptionAuditLog {
+  id: string;
+  subscription_id: string;
+  modified_by: string;
+  previous_status: SubscriptionStatus;
+  new_status: SubscriptionStatus;
+  previous_end_date: string;
+  new_end_date: string;
+  previous_type: SubscriptionType;
+  new_type: SubscriptionType;
+  action_timestamp: string;
+  notes?: string;
 }
 
 export type Json =
