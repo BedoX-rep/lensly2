@@ -1,22 +1,25 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmail } from "@/lib/auth-config";
-import { supabase } from "@/integrations/supabase/client";
+import { signInWithEmail, useAuth } from "@/lib/auth-config";
+import { createTrialSubscription } from "@/integrations/supabase/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
-
+  
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [isLoginLoading, setIsLoginLoading] = useState(false);
-
+  
   // Signup state
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
@@ -24,28 +27,21 @@ export default function Login() {
   const [isSignupLoading, setIsSignupLoading] = useState(false);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/");
-      }
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, [navigate]);
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoginLoading(true);
-
+    
     try {
-      const { error } = await signInWithEmail(loginEmail, loginPassword);
+      const { data, error } = await signInWithEmail(loginEmail, loginPassword);
       if (error) {
         toast.error("Login failed: " + error.message);
-      } else {
+      } else if (data?.user) {
         toast.success("Login successful");
-        navigate("/");
       }
     } catch (err) {
       toast.error("An error occurred during login");
@@ -72,12 +68,26 @@ export default function Login() {
 
       if (error) {
         toast.error("Signup failed: " + error.message);
-      } else if (data.user) {
-        toast.success("Check your email to confirm your account");
-        setActiveTab("login");
+        return;
+      }
+
+      if (data.user) {
+        try {
+          const subscription = await createTrialSubscription(data.user.id);
+          if (subscription) {
+            toast.success("Account created successfully with trial subscription");
+            setActiveTab("login");
+          } else {
+            toast.error("Failed to create trial subscription");
+          }
+        } catch (subscriptionError) {
+          console.error('Subscription creation error:', subscriptionError);
+          toast.error("Failed to create trial subscription");
+        }
       }
     } catch (err) {
-      toast.error("An error occurred during signup");
+      console.error('Signup error:', err);
+      toast.error("Failed to complete signup process");
     } finally {
       setIsSignupLoading(false);
     }
@@ -95,25 +105,29 @@ export default function Login() {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-
+            
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  disabled={isLoginLoading}
-                  required
-                />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  disabled={isLoginLoading}
-                  required
-                />
+                <div className="space-y-2">
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    disabled={isLoginLoading}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    disabled={isLoginLoading}
+                    required
+                  />
+                </div>
                 <Button type="submit" className="w-full" disabled={isLoginLoading}>
                   {isLoginLoading ? "Logging in..." : "Login"}
                 </Button>
@@ -122,30 +136,36 @@ export default function Login() {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={signupEmail}
-                  onChange={(e) => setSignupEmail(e.target.value)}
-                  disabled={isSignupLoading}
-                  required
-                />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={signupPassword}
-                  onChange={(e) => setSignupPassword(e.target.value)}
-                  disabled={isSignupLoading}
-                  required
-                />
-                <Input
-                  type="password"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isSignupLoading}
-                  required
-                />
+                <div className="space-y-2">
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                    disabled={isSignupLoading}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    disabled={isSignupLoading}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isSignupLoading}
+                    required
+                  />
+                </div>
                 <Button type="submit" className="w-full" disabled={isSignupLoading}>
                   {isSignupLoading ? "Creating Account..." : "Create Account"}
                 </Button>
