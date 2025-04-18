@@ -45,7 +45,7 @@ export function useSubscriptionStatus(userId: string | undefined) {
     };
 
     checkSubscription();
-    const interval = setInterval(checkSubscription, 1000 * 60 * 60); // Check every hour
+    const interval = setInterval(checkSubscription, 120); // Check every hour
 
     return () => clearInterval(interval);
   }, [userId, navigate]);
