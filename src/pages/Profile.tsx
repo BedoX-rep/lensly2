@@ -1,6 +1,7 @@
 
 import { useAuth } from "@/lib/auth-config";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 export default function Profile() {
   const { user } = useAuth();
