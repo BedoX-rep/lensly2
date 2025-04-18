@@ -1,69 +1,92 @@
 
--- Create subscription status enum
+-- Enable UUID extension
+create extension if not exists "uuid-ossp";
+
+-- Create enum types
 create type subscription_status as enum ('Active', 'Suspended', 'Cancelled');
-
--- Add admin flag to auth.users
-alter table auth.users add column is_admin boolean default false;
-
--- Create subscription audit log
-create table public.subscription_audit_logs (
-    id uuid default gen_random_uuid() primary key,
-    subscription_id uuid references public.subscriptions(id) not null,
-    modified_by uuid references auth.users(id) not null,
-    previous_status subscription_status,
-    new_status subscription_status,
-    previous_end_date timestamp with time zone,
-    new_end_date timestamp with time zone,
-    previous_type subscription_type,
-    new_type subscription_type,
-    action_timestamp timestamp with time zone default now(),
-    notes text
-);
-
--- Add status to subscriptions table
-alter table public.subscriptions add column status subscription_status default 'Active';
-
--- Enable RLS
-alter table public.products enable row level security;
-alter table public.clients enable row level security;
-alter table public.receipts enable row level security;
-alter table public.receipt_items enable row level security;
-
--- Add user_id column to tables
-alter table public.products add column user_id uuid references auth.users(id) default auth.uid();
-alter table public.clients add column user_id uuid references auth.users(id) default auth.uid();
-alter table public.receipts add column user_id uuid references auth.users(id) default auth.uid();
-alter table public.receipt_items add column user_id uuid references auth.users(id) default auth.uid();
-
--- Create subscriptions table
--- Create subscription type enum
 create type subscription_type as enum ('Trial', 'Monthly', 'Quarterly', 'Lifetime');
 
+-- Add admin flag to auth.users
+alter table auth.users add column if not exists is_admin boolean default false;
+
+-- Create products table
+create table public.products (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  price decimal(10,2) not null,
+  user_id uuid references auth.users(id) not null,
+  created_at timestamp with time zone default now()
+);
+
+-- Create clients table
+create table public.clients (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  phone text,
+  user_id uuid references auth.users(id) not null,
+  created_at timestamp with time zone default now()
+);
+
+-- Create receipts table
+create table public.receipts (
+  id uuid default gen_random_uuid() primary key,
+  client_id uuid references public.clients(id) not null,
+  total_amount decimal(10,2) not null,
+  tax_amount decimal(10,2) default 0,
+  discount_amount decimal(10,2) default 0,
+  advance_payment decimal(10,2) default 0,
+  user_id uuid references auth.users(id) not null,
+  created_at timestamp with time zone default now()
+);
+
+-- Create receipt items table
+create table public.receipt_items (
+  id uuid default gen_random_uuid() primary key,
+  receipt_id uuid references public.receipts(id) not null,
+  product_id uuid references public.products(id) not null,
+  quantity integer not null,
+  price decimal(10,2) not null,
+  total decimal(10,2) not null,
+  user_id uuid references auth.users(id) not null,
+  created_at timestamp with time zone default now()
+);
+
+-- Create subscriptions table
 create table public.subscriptions (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) not null,
   start_date timestamp with time zone default now(),
   end_date timestamp with time zone not null,
   subscription_type subscription_type default 'Trial',
+  status subscription_status default 'Active',
   trial_used boolean default true,
   created_at timestamp with time zone default now()
 );
 
--- Enable RLS on subscriptions
+-- Create subscription audit logs table
+create table public.subscription_audit_logs (
+  id uuid default gen_random_uuid() primary key,
+  subscription_id uuid references public.subscriptions(id) not null,
+  modified_by uuid references auth.users(id) not null,
+  previous_status subscription_status,
+  new_status subscription_status,
+  previous_end_date timestamp with time zone,
+  new_end_date timestamp with time zone,
+  previous_type subscription_type,
+  new_type subscription_type,
+  action_timestamp timestamp with time zone default now(),
+  notes text
+);
+
+-- Enable Row Level Security
+alter table public.products enable row level security;
+alter table public.clients enable row level security;
+alter table public.receipts enable row level security;
+alter table public.receipt_items enable row level security;
 alter table public.subscriptions enable row level security;
+alter table public.subscription_audit_logs enable row level security;
 
--- Add RLS policies for subscriptions
-create policy "Users can view their own subscription"
-on public.subscriptions for select
-to authenticated
-using (auth.uid() = user_id);
-
-create policy "System can create subscriptions"
-on public.subscriptions for insert
-to authenticated
-with check (auth.uid() = user_id);
-
--- Create RLS policies
+-- RLS Policies for products
 create policy "Users can create their own products"
 on public.products for insert
 to authenticated
@@ -84,7 +107,7 @@ on public.products for delete
 to authenticated
 using (auth.uid() = user_id);
 
--- Client policies
+-- RLS Policies for clients
 create policy "Users can create their own clients"
 on public.clients for insert
 to authenticated
@@ -105,7 +128,7 @@ on public.clients for delete
 to authenticated
 using (auth.uid() = user_id);
 
--- Receipt policies
+-- RLS Policies for receipts
 create policy "Users can create their own receipts"
 on public.receipts for insert
 to authenticated
@@ -126,7 +149,7 @@ on public.receipts for delete
 to authenticated
 using (auth.uid() = user_id);
 
--- Receipt items policies
+-- RLS Policies for receipt items
 create policy "Users can create their own receipt items"
 on public.receipt_items for insert
 to authenticated
@@ -146,6 +169,7 @@ create policy "Users can delete their own receipt items"
 on public.receipt_items for delete
 to authenticated
 using (auth.uid() = user_id);
+
 -- Admin RLS policies for subscriptions
 create policy "Admins can view all subscriptions"
 on public.subscriptions for select
