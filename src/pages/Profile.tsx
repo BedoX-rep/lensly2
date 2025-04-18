@@ -23,13 +23,21 @@ export default function Profile() {
               <label className="font-medium">ID</label>
               <p className="text-muted-foreground">{user?.id}</p>
             </div>
-            <div>
-              <label className="font-medium">Subscription Status</label>
-              <p className={`text-muted-foreground ${daysRemaining && daysRemaining <= 2 ? 'text-orange-500' : ''}`}>
-                {daysRemaining !== null && hoursRemaining !== null
-                  ? `${daysRemaining} days and ${hoursRemaining} hours remaining`
-                  : 'Loading...'}
-              </p>
+            <div className="space-y-2">
+              <div>
+                <label className="font-medium">Subscription Type</label>
+                <p className="text-muted-foreground capitalize">
+                  {subscription?.subscription_type || 'Loading...'}
+                </p>
+              </div>
+              <div>
+                <label className="font-medium">Subscription Status</label>
+                <p className={`text-muted-foreground ${daysRemaining && daysRemaining <= 2 ? 'text-orange-500' : ''}`}>
+                  {daysRemaining !== null && hoursRemaining !== null
+                    ? `${daysRemaining} days and ${hoursRemaining} hours remaining`
+                    : 'Loading...'}
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>

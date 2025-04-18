@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 export function useSubscriptionStatus(userId: string | undefined) {
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [hoursRemaining, setHoursRemaining] = useState<number | null>(null);
+  const [subscription, setSubscription] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export function useSubscriptionStatus(userId: string | undefined) {
     const checkSubscription = async () => {
       const { data: subscription, error } = await supabase
         .from('subscriptions')
-        .select('end_date')
+        .select('end_date, subscription_type')
         .eq('user_id', userId)
         .single();
 
@@ -26,6 +27,7 @@ export function useSubscriptionStatus(userId: string | undefined) {
       }
 
       if (subscription) {
+        setSubscription(subscription);
         const endDate = new Date(subscription.end_date);
         const now = new Date();
         const diffTime = endDate.getTime() - now.getTime();
@@ -55,7 +57,7 @@ export function useSubscriptionStatus(userId: string | undefined) {
     return () => clearInterval(interval);
   }, [userId, navigate]);
 
-  return { daysRemaining, hoursRemaining };
+  return { daysRemaining, hoursRemaining, subscription };
 }
 
 // Global subscription checker
